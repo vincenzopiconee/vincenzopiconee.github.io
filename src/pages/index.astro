@@ -1,0 +1,190 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import AppIcon from '../components/AppIcon.astro';
+import { getProjectMedia } from '../utils/media';
+
+const projects = (await getCollection('projects')).sort(
+  (a, b) => a.data.order - b.data.order
+);
+
+function getCardStyle(theme: (typeof projects)[number]['data']['theme']) {
+  return [
+    `--card-bg-light: ${theme.bgLight}`,
+    `--card-bg-hover-light: ${theme.bgHoverLight}`,
+    `--card-bg-dark: ${theme.bgDark}`,
+    `--card-bg-hover-dark: ${theme.bgHoverDark}`,
+    `--card-border-light: ${theme.borderLight}`,
+    `--card-border-hover-light: ${theme.borderHoverLight}`,
+    `--card-border-dark: ${theme.borderDark}`,
+    `--card-border-hover-dark: ${theme.borderHoverDark}`,
+    `--card-spot-light: ${theme.spotLight}`,
+    `--card-spot-dark: ${theme.spotDark}`,
+  ].join('; ');
+}
+---
+
+<BaseLayout
+  title="Vincenzo Picone | iOS Developer"
+  description="Computer Science student building native iOS apps with Swift and SwiftUI. Focused on clean architecture, speed, and interfaces that feel right at home on Apple platforms."
+  activeNav="projects"
+>
+  <!-- Hero: Big Name With Brief Info Directly Underneath -->
+  <section class="apple-container pt-14 pb-12 sm:pt-22 sm:pb-16">
+    <h1 class="text-5xl font-semibold tracking-[-0.035em] text-[var(--ink)] sm:text-7xl sm:leading-[1.03]">
+      Vincenzo Picone
+    </h1>
+    <p class="mt-4 max-w-2xl text-lg leading-relaxed text-[var(--ink-secondary)] sm:text-2xl">
+      Computer Science student building native iOS apps with Swift and SwiftUI. Focused on clean architecture, speed, and interfaces that feel right at home on Apple platforms.
+    </p>
+    <div class="mt-5">
+      <a href="/profile" class="apple-link text-sm font-medium">
+        Full Profile &amp; Connections &rsaquo;
+      </a>
+    </div>
+  </section>
+
+  <!-- Vertical-Scroll Full-Width 2-Column Landscape Card Grid (Personalized per App Icon & Media) -->
+  <section aria-label="Projects" class="apple-container pb-12">
+    <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
+      {projects.map((project, index) => {
+        const { data, id } = project;
+        const media = getProjectMedia(id);
+        const isHeroWide = index === 0;
+        const previewImage = media.demoPoster ?? media.screenshots[0]?.src;
+        // Trustfall lead artwork (UFO abduction panel)
+        const featuredArtwork = !previewImage ? media.artworks[2] ?? media.artworks[0] : undefined;
+        const hasRightVisual = Boolean(previewImage || featuredArtwork);
+
+        return (
+          <div class:list={[isHeroWide && 'md:col-span-2', index > 0 && 'scroll-reveal']}>
+            <article
+              data-dynamic-card
+              style={getCardStyle(data.theme)}
+              class:list={[
+                'dynamic-card h-full overflow-hidden rounded-[28px] p-7 sm:p-9 text-[var(--ink)]',
+                isHeroWide ? 'min-h-[300px] sm:min-h-[340px]' : 'min-h-[280px] sm:min-h-[310px]',
+              ]}
+            >
+              <!-- Optional App Background Wallpaper (Biteary doodles / Beeep lime grid) -->
+              {media.background && data.theme.bgImageMode !== 'none' && (
+                <div
+                  class:list={[
+                    'card-bg-pattern',
+                    data.theme.bgImageMode === 'doodle' && 'card-bg-doodle',
+                    data.theme.bgImageMode === 'grid' && 'card-bg-grid',
+                  ]}
+                  style={`background-image: url('${media.background}');`}
+                  aria-hidden="true"
+                ></div>
+              )}
+
+              <!-- Pointer-tracking spotlight highlight (pointer-events: none) -->
+              <div class="card-spotlight" aria-hidden="true"></div>
+
+              <div
+                class:list={[
+                  'grid h-full items-center gap-8',
+                  hasRightVisual
+                    ? isHeroWide
+                      ? 'md:grid-cols-[1.15fr_0.85fr]'
+                      : 'sm:grid-cols-[1.35fr_0.65fr]'
+                    : 'grid-cols-1',
+                ]}
+              >
+                <!-- Left Content -->
+                <div class="flex h-full flex-col justify-between">
+                  <div>
+                    <div class="flex items-center gap-3.5">
+                      <AppIcon title={data.title} media={media} size="md" />
+                      <div>
+                        <p class="text-base font-semibold tracking-tight text-[var(--ink)]">
+                          {data.title}
+                        </p>
+                        <p class="text-xs font-medium text-[var(--ink-secondary)]">
+                          {data.kicker}
+                        </p>
+                      </div>
+                    </div>
+
+                    <h2
+                      class:list={[
+                        'mt-6 font-semibold leading-tight tracking-[-0.025em] text-[var(--ink)]',
+                        isHeroWide ? 'text-3xl sm:text-4xl max-w-xl' : 'text-2xl sm:text-[26px]',
+                      ]}
+                    >
+                      {data.headline}
+                    </h2>
+
+                    <p class="mt-3 max-w-xl text-sm leading-relaxed text-[var(--ink-secondary)]">
+                      {data.subtitle}
+                    </p>
+                  </div>
+
+                  <div class="mt-7 flex flex-wrap items-center justify-between gap-4">
+                    <div class="flex flex-wrap items-center gap-4">
+                      <a
+                        href={`/projects/${id}`}
+                        class="apple-pill card-stretched-link px-4 py-2 text-xs sm:text-sm"
+                      >
+                        More information
+                      </a>
+                      <a
+                        href={data.github}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="apple-link card-secondary-link text-xs font-medium sm:text-sm"
+                      >
+                        GitHub &rsaquo;
+                      </a>
+                    </div>
+
+                    <p class="text-xs font-medium text-[var(--ink-secondary)]">
+                      {data.frameworks.filter((fw) => fw !== 'Swift').slice(0, 5).join(' · ')}
+                    </p>
+                  </div>
+                </div>
+
+                <!-- Right Side Visual (Screenshots / Trustfall Artwork) -->
+                {previewImage ? (
+                  <div class="flex justify-center sm:justify-end">
+                    <div
+                      class:list={[
+                        'overflow-hidden rounded-[1.5rem] border border-[var(--hairline)] bg-black shadow-sm',
+                        isHeroWide ? 'h-[260px] sm:h-[290px]' : 'h-[215px] sm:h-[235px]',
+                      ]}
+                    >
+                      <img
+                        src={previewImage}
+                        alt={`${data.title} preview`}
+                        width="390"
+                        height="844"
+                        loading={index < 2 ? 'eager' : 'lazy'}
+                        decoding="async"
+                        class="h-full w-auto object-cover"
+                      />
+                    </div>
+                  </div>
+                ) : featuredArtwork && (
+                  <div class="flex justify-center md:justify-end">
+                    <div class="overflow-hidden rounded-2xl border border-black/10 bg-white shadow-sm max-w-[460px] w-full">
+                      <img
+                        src={featuredArtwork.src}
+                        alt={`${data.title} cutscene artwork`}
+                        width="960"
+                        height="540"
+                        loading="eager"
+                        decoding="async"
+                        class="aspect-video w-full object-cover"
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+            </article>
+          </div>
+        );
+      })}
+    </div>
+  </section>
+</BaseLayout>

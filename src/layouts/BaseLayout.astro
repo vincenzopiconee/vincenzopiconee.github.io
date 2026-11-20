@@ -1,0 +1,191 @@
+---
+import '../styles/global.css';
+
+interface Props {
+  title: string;
+  description?: string;
+  activeNav?: 'projects' | 'profile';
+}
+
+const {
+  title,
+  description = 'Computer Science student building native iOS apps with Swift and SwiftUI. Focused on clean architecture, speed, and interfaces that feel right at home on Apple platforms.',
+  activeNav = 'projects',
+} = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  </head>
+  <body class="flex flex-col">
+    <a
+      href="#main-content"
+      class="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:rounded-md focus:px-3 focus:py-1.5 focus:text-xs focus:font-medium focus:bg-[var(--ink)] focus:text-[var(--bg)]"
+    >
+      Skip to content
+    </a>
+
+    <header class="apple-nav sticky top-0 z-40">
+      <div class="apple-container flex h-12 items-center justify-between">
+        <a
+          href="/"
+          class="text-sm font-semibold tracking-tight text-[var(--ink)] hover:opacity-75 transition-opacity"
+        >
+          Vincenzo Picone
+        </a>
+
+        <nav aria-label="Primary navigation" class="flex items-center gap-7 text-xs font-medium">
+          <a
+            href="/"
+            class:list={[
+              'transition-colors',
+              activeNav === 'projects'
+                ? 'text-[var(--ink)]'
+                : 'text-[var(--ink-secondary)] hover:text-[var(--ink)]',
+            ]}
+          >
+            Projects
+          </a>
+          <a
+            href="/profile"
+            class:list={[
+              'transition-colors',
+              activeNav === 'profile'
+                ? 'text-[var(--ink)]'
+                : 'text-[var(--ink-secondary)] hover:text-[var(--ink)]',
+            ]}
+          >
+            Profile
+          </a>
+        </nav>
+      </div>
+    </header>
+
+    <main id="main-content" class="flex-1">
+      <slot />
+    </main>
+
+    <footer class="mt-24 border-t border-[var(--hairline)]">
+      <div class="apple-container flex flex-col gap-3 py-8 text-xs text-[var(--ink-secondary)] sm:flex-row sm:items-center sm:justify-between">
+        <p>Vincenzo Picone</p>
+        <div class="flex items-center gap-6">
+          <a href="/profile" class="hover:text-[var(--ink)] transition-colors">Profile</a>
+          <a href="https://github.com/vincenzopiconee" target="_blank" rel="noopener noreferrer" class="hover:text-[var(--ink)] transition-colors">GitHub</a>
+          <a href="https://www.linkedin.com/in/vincenzo-piconee" target="_blank" rel="noopener noreferrer" class="hover:text-[var(--ink)] transition-colors">LinkedIn</a>
+          <a href="mailto:vincenzopicone22@gmail.com" class="hover:text-[var(--ink)] transition-colors">Email</a>
+        </div>
+      </div>
+    </footer>
+
+    <script>
+      // 1. Uniform cursor-following highlight spotlight on all cards (no 3D tilt movement)
+      const canHover = window.matchMedia('(hover: hover)').matches;
+      const reducedMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+      if (canHover) {
+        const cards = Array.from(document.querySelectorAll<HTMLElement>('[data-dynamic-card]'));
+        const rectMap = new WeakMap<HTMLElement, DOMRect>();
+        let rectsDirty = true;
+
+        window.addEventListener('scroll', () => { rectsDirty = true; }, { passive: true });
+        window.addEventListener('resize', () => { rectsDirty = true; }, { passive: true });
+
+        cards.forEach((card) => {
+          const resizeObserver = new ResizeObserver(() => {
+            rectsDirty = true;
+          });
+          resizeObserver.observe(card);
+
+          card.addEventListener('pointerenter', () => {
+            rectMap.set(card, card.getBoundingClientRect());
+            rectsDirty = false;
+          });
+
+          card.addEventListener('pointermove', (e) => {
+            if (e.pointerType !== 'mouse' && e.pointerType !== 'pen') return;
+            let rect = rectMap.get(card);
+            if (!rect || rectsDirty) {
+              rect = card.getBoundingClientRect();
+              rectMap.set(card, rect);
+              rectsDirty = false;
+            }
+            const px = Math.min(1, Math.max(0, (e.clientX - rect.left) / rect.width));
+            const py = Math.min(1, Math.max(0, (e.clientY - rect.top) / rect.height));
+
+            card.style.setProperty('--mouse-x', `${(px * 100).toFixed(2)}%`);
+            card.style.setProperty('--mouse-y', `${(py * 100).toFixed(2)}%`);
+          });
+        });
+      }
+
+      // 2. Pause autoplaying demo videos when prefers-reduced-motion is enabled
+      function syncReducedMotion(prefersReduced: boolean) {
+        document.querySelectorAll<HTMLVideoElement>('video[autoplay]').forEach((video) => {
+          if (prefersReduced) {
+            video.removeAttribute('autoplay');
+            video.pause();
+          }
+        });
+      }
+      syncReducedMotion(reducedMotionQuery.matches);
+      reducedMotionQuery.addEventListener('change', (e) => syncReducedMotion(e.matches));
+
+      // IntersectionObserver fallback for browsers without native <video loading="lazy">
+      const supportsLazyMedia = Object.hasOwn(HTMLMediaElement.prototype, 'loading');
+      if (!supportsLazyMedia) {
+        const lazyVideos = document.querySelectorAll<HTMLVideoElement>('video[loading="lazy"]');
+        if (lazyVideos.length > 0) {
+          const observer = new IntersectionObserver(
+            (entries, obs) => {
+              for (const entry of entries) {
+                if (!entry.isIntersecting) continue;
+                const video = entry.target as HTMLVideoElement;
+                if (video.dataset.poster) {
+                  video.poster = video.dataset.poster;
+                  delete video.dataset.poster;
+                }
+                if (video.dataset.preload) {
+                  video.preload = video.dataset.preload;
+                  delete video.dataset.preload;
+                }
+                video.querySelectorAll<HTMLSourceElement>('source[data-src]').forEach((source) => {
+                  source.src = source.dataset.src ?? '';
+                  delete source.dataset.src;
+                });
+                video.load();
+                obs.unobserve(video);
+              }
+            },
+            { rootMargin: '200px 0px' }
+          );
+
+          lazyVideos.forEach((video) => {
+            if (video.hasAttribute('poster')) {
+              video.dataset.poster = video.getAttribute('poster') ?? '';
+              video.removeAttribute('poster');
+            }
+            if (video.hasAttribute('preload') && video.getAttribute('preload') !== 'none') {
+              video.dataset.preload = video.getAttribute('preload') ?? 'metadata';
+            }
+            video.querySelectorAll<HTMLSourceElement>('source[src]').forEach((source) => {
+              source.dataset.src = source.getAttribute('src') ?? '';
+              source.removeAttribute('src');
+            });
+            video.preload = 'none';
+            observer.observe(video);
+          });
+        }
+      }
+    </script>
+  </body>
+</html>

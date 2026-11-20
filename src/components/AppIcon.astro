@@ -1,0 +1,69 @@
+---
+import type { ProjectMedia } from '../utils/media';
+
+interface Props {
+  title: string;
+  media: ProjectMedia;
+  size?: 'md' | 'lg';
+}
+
+const { title, media, size = 'md' } = Astro.props;
+
+const sizeClasses = size === 'lg'
+  ? 'h-16 w-16 rounded-[17px] text-lg'
+  : 'h-13 w-13 rounded-[13px] text-sm';
+
+const initial = title.slice(0, 1).toUpperCase();
+---
+
+{media.icon ? (
+  <div
+    class:list={[
+      'shrink-0 overflow-hidden bg-white shadow-sm ring-1 ring-black/10',
+      sizeClasses,
+    ]}
+  >
+    {media.iconDark ? (
+      <>
+        <img
+          src={media.icon}
+          alt={`${title} app icon`}
+          width="128"
+          height="128"
+          loading="lazy"
+          decoding="async"
+          class="icon-light-only h-full w-full object-cover"
+        />
+        <img
+          src={media.iconDark}
+          alt={`${title} dark app icon`}
+          width="128"
+          height="128"
+          loading="lazy"
+          decoding="async"
+          class="icon-dark-only h-full w-full object-cover"
+        />
+      </>
+    ) : (
+      <img
+        src={media.icon}
+        alt={`${title} app icon`}
+        width="128"
+        height="128"
+        loading="lazy"
+        decoding="async"
+        class="h-full w-full object-cover"
+      />
+    )}
+  </div>
+) : (
+  <div
+    class:list={[
+      'flex shrink-0 items-center justify-center border border-[var(--hairline)] bg-[var(--bg)] font-semibold tracking-tight text-[var(--ink)] select-none',
+      sizeClasses,
+    ]}
+    aria-hidden="true"
+  >
+    {initial}
+  </div>
+)}

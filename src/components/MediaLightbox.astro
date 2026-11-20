@@ -1,0 +1,71 @@
+---
+// Native top-layer screenshot lightbox dialog (modern-web-guidance: light-dismiss-a-dialog)
+---
+
+<dialog
+  id="media-lightbox"
+  class="media-lightbox"
+  closedby="any"
+  aria-labelledby="lightbox-title"
+>
+  <div class="relative flex max-h-[90dvh] flex-col overflow-hidden rounded-2xl border border-[var(--hairline)] bg-[var(--bg)]">
+    <div class="flex items-center justify-between gap-4 border-b border-[var(--hairline)] px-4 py-3">
+      <h2 id="lightbox-title" class="truncate text-xs font-medium text-[var(--ink)]">
+        Preview
+      </h2>
+      <form method="dialog">
+        <button
+          type="submit"
+          aria-label="Close preview"
+          class="inline-flex h-7 w-7 items-center justify-center rounded-full bg-[var(--surface)] text-xs text-[var(--ink-secondary)] hover:text-[var(--ink)] transition-colors cursor-pointer"
+        >
+          ✕
+        </button>
+      </form>
+    </div>
+
+    <div class="flex items-center justify-center bg-[#f5f5f7] p-6">
+      <img
+        id="lightbox-img"
+        src=""
+        alt=""
+        class="max-h-[76dvh] w-auto rounded-lg object-contain"
+      />
+    </div>
+  </div>
+</dialog>
+
+<script>
+  const dialog = document.getElementById('media-lightbox') as HTMLDialogElement | null;
+  const img = document.getElementById('lightbox-img') as HTMLImageElement | null;
+  const titleEl = document.getElementById('lightbox-title');
+
+  if (dialog && img && titleEl) {
+    document.addEventListener('click', (event) => {
+      const trigger = (event.target as HTMLElement | null)?.closest<HTMLElement>('[data-lightbox-src]');
+      if (!trigger) return;
+      const src = trigger.dataset.lightboxSrc;
+      const label = trigger.dataset.lightboxLabel || 'Screenshot';
+      if (!src) return;
+
+      img.src = src;
+      img.alt = label;
+      titleEl.textContent = label;
+      dialog.showModal();
+    });
+
+    if (!('closedBy' in HTMLDialogElement.prototype)) {
+      dialog.addEventListener('click', (event) => {
+        if (event.target !== dialog) return;
+        const rect = dialog.getBoundingClientRect();
+        const isInside =
+          rect.top <= event.clientY &&
+          event.clientY <= rect.top + rect.height &&
+          rect.left <= event.clientX &&
+          event.clientX <= rect.left + rect.width;
+        if (isInside) return;
+        dialog.close();
+      });
+    }
+  }
+</script>

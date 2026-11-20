@@ -1,0 +1,376 @@
+---
+import { getCollection, render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import AppIcon from '../../components/AppIcon.astro';
+import MediaLightbox from '../../components/MediaLightbox.astro';
+import { getProjectMedia } from '../../utils/media';
+
+export async function getStaticPaths() {
+  const projects = await getCollection('projects');
+  return projects.map((project) => ({
+    params: { slug: project.id },
+    props: { project },
+  }));
+}
+
+const { project } = Astro.props;
+const { data, id } = project;
+const { Content } = await render(project);
+const media = getProjectMedia(id);
+
+const allProjects = (await getCollection('projects')).sort(
+  (a, b) => a.data.order - b.data.order
+);
+const idx = allProjects.findIndex((p) => p.id === id);
+const prev = idx > 0 ? allProjects[idx - 1] : null;
+const next = idx < allProjects.length - 1 ? allProjects[idx + 1] : null;
+
+const bandThemeStyle = [
+  `--card-bg-light: ${data.theme.bgLight}`,
+  `--card-bg-dark: ${data.theme.bgDark}`,
+].join('; ');
+---
+
+<BaseLayout
+  title={`${data.title} | Vincenzo Picone`}
+  description={data.subtitle}
+  activeNav="projects"
+>
+  <article>
+    <!-- Wide Editorial Hero -->
+    <header class="apple-container pt-12 pb-14 sm:pt-20 sm:pb-20">
+      <a href="/" class="apple-link text-sm font-medium">
+        &lsaquo; Back to Projects
+      </a>
+
+      <div class="mt-10 flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
+        <div class="max-w-3xl">
+          <div class="flex items-center gap-4">
+            <AppIcon title={data.title} media={media} size="lg" />
+            <div>
+              <p class="text-xs font-semibold text-[var(--ink-secondary)]">
+                {data.kicker} · {data.year}
+              </p>
+              <p class="text-xl font-semibold tracking-tight text-[var(--ink)]">
+                {data.title}
+              </p>
+            </div>
+          </div>
+
+          <h1 class="mt-6 text-4xl font-semibold tracking-[-0.03em] text-[var(--ink)] sm:text-6xl sm:leading-[1.05]">
+            {data.headline}
+          </h1>
+        </div>
+
+        <div class="flex items-center gap-4 lg:pb-2">
+          <a
+            href={data.github}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="apple-pill px-5 py-2.5 text-sm"
+          >
+            View on GitHub
+          </a>
+        </div>
+      </div>
+    </header>
+
+    <!-- App-Themed Asymmetric Story Opening Band -->
+    <section class="themed-band py-16 sm:py-24" style={bandThemeStyle}>
+      {media.background && data.theme.bgImageMode !== 'none' && (
+        <div
+          class:list={[
+            'card-bg-pattern',
+            data.theme.bgImageMode === 'doodle' && 'card-bg-doodle',
+            data.theme.bgImageMode === 'grid' && 'card-bg-grid',
+          ]}
+          style={`background-image: url('${media.background}');`}
+          aria-hidden="true"
+        ></div>
+      )}
+
+      <div class="apple-container relative z-10 grid gap-8 lg:grid-cols-[40%_1fr] lg:items-start">
+        <p class="text-2xl font-semibold leading-snug tracking-tight text-[var(--ink)] sm:text-3xl">
+          {data.subtitle}
+        </p>
+
+        <div class="max-w-2xl space-y-5 text-base leading-relaxed text-[var(--ink-secondary)] sm:text-lg">
+          <Content />
+        </div>
+      </div>
+    </section>
+
+    <!-- Auto-Detected Demo Video & App Screenshots (Renders when added in public/media/<slug>/) -->
+    {(media.demoVideo || media.screenshots.length > 0) && (
+      <section aria-label="App gallery" class="apple-container pt-16 sm:pt-24 space-y-10">
+        {media.demoVideo && (
+          <div class="apple-surface flex justify-center rounded-[32px] p-8 sm:p-14">
+            <div class="w-[260px] sm:w-[300px] overflow-hidden rounded-[2.2rem] border border-[var(--hairline)] bg-black">
+              <video
+                controls
+                playsinline
+                muted
+                loop
+                autoplay
+                width="390"
+                height="844"
+                preload="metadata"
+                poster={media.demoPoster}
+                class="aspect-[9/19.2] w-full object-cover"
+              >
+                <source
+                  src={media.demoVideo}
+                  type={media.demoVideo.endsWith('.webm') ? 'video/webm' : 'video/mp4'}
+                />
+              </video>
+            </div>
+          </div>
+        )}
+
+        {media.screenshots.length > 0 && (
+          <div class="grid grid-cols-2 gap-5 sm:grid-cols-3 lg:grid-cols-4">
+            {media.screenshots.map((shot) => (
+              <button
+                type="button"
+                data-lightbox-src={shot.src}
+                data-lightbox-label={`${data.title}: ${shot.label}`}
+                class="overflow-hidden rounded-[1.75rem] border border-[var(--hairline)] bg-black cursor-zoom-in"
+              >
+                <img
+                  src={shot.src}
+                  alt={`${data.title} ${shot.label}`}
+                  width="390"
+                  height="844"
+                  loading="lazy"
+                  decoding="async"
+                  class="aspect-[9/19.2] w-full object-cover"
+                />
+              </button>
+            ))}
+          </div>
+        )}
+      </section>
+    )}
+
+    <!-- Dedicated Storyboard Artwork Strip (e.g., Trustfall Cutscenes) -->
+    {media.artworks.length > 0 && (
+      <section aria-labelledby="artworks-heading" class="apple-container pt-16 sm:pt-24">
+        <div class="max-w-2xl">
+          <h2 id="artworks-heading" class="text-3xl font-semibold tracking-tight text-[var(--ink)] sm:text-4xl">
+            {data.showcaseMeta?.artworksTitle ?? 'Artwork & Storyboard'}
+          </h2>
+          {data.showcaseMeta?.artworksSubtitle && (
+            <p class="mt-2.5 text-base leading-relaxed text-[var(--ink-secondary)]">
+              {data.showcaseMeta.artworksSubtitle}
+            </p>
+          )}
+        </div>
+
+        <div class="mt-8 grid gap-5 sm:grid-cols-2">
+          {media.artworks.map((art, i) => (
+            <figure class="scroll-reveal">
+              <button
+                type="button"
+                data-lightbox-src={art.src}
+                data-lightbox-label={`${data.title}, Scene ${i + 1}: ${art.label}`}
+                class="group block w-full overflow-hidden rounded-[22px] border border-[var(--hairline)] bg-white cursor-zoom-in text-left"
+              >
+                <img
+                  src={art.src}
+                  alt={`${data.title} scene ${i + 1}: ${art.label}`}
+                  width="960"
+                  height="540"
+                  loading="lazy"
+                  decoding="async"
+                  class="aspect-video w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+                />
+              </button>
+              <figcaption class="mt-2.5 px-1 text-xs font-medium text-[var(--ink-secondary)]">
+                0{i + 1} · {art.label}
+              </figcaption>
+            </figure>
+          ))}
+        </div>
+      </section>
+    )}
+
+    <!-- Dedicated Playable Characters Section (Trustfall) -->
+    {media.characters.length > 0 && (
+      <section aria-labelledby="characters-heading" class="apple-container pt-16 sm:pt-24">
+        <div class="max-w-2xl">
+          <h2 id="characters-heading" class="text-3xl font-semibold tracking-tight text-[var(--ink)] sm:text-4xl">
+            {data.showcaseMeta?.charactersTitle ?? 'Game Characters'}
+          </h2>
+          {data.showcaseMeta?.charactersSubtitle && (
+            <p class="mt-2.5 text-base leading-relaxed text-[var(--ink-secondary)]">
+              {data.showcaseMeta.charactersSubtitle}
+            </p>
+          )}
+        </div>
+
+        <div class="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
+          {media.characters.map((char) => (
+            <div class="scroll-reveal">
+              <button
+                type="button"
+                data-lightbox-src={char.src}
+                data-lightbox-label={`${data.title}: ${char.label}`}
+                class="group flex w-full flex-col items-center rounded-[24px] border border-[var(--hairline)] bg-white p-4 text-center cursor-zoom-in transition-transform duration-200 hover:-translate-y-1"
+              >
+                <img
+                  src={char.src}
+                  alt={`${char.label}, ${data.title} character`}
+                  width="324"
+                  height="324"
+                  loading="lazy"
+                  decoding="async"
+                  class="aspect-square w-full max-w-[140px] object-contain"
+                />
+                <span class="mt-3 text-sm font-semibold tracking-tight text-[#1d1d1f]">
+                  {char.label}
+                </span>
+              </button>
+            </div>
+          ))}
+        </div>
+      </section>
+    )}
+
+    <!-- Dedicated Unlockable Rewards Section (SuperHeroFit) -->
+    {media.rewards.length > 0 && (
+      <section aria-labelledby="rewards-heading" class="apple-container pt-16 sm:pt-24">
+        <div class="max-w-2xl">
+          <h2 id="rewards-heading" class="text-3xl font-semibold tracking-tight text-[var(--ink)] sm:text-4xl">
+            {data.showcaseMeta?.rewardsTitle ?? 'Unlockable Rewards'}
+          </h2>
+          {data.showcaseMeta?.rewardsSubtitle && (
+            <p class="mt-2.5 text-base leading-relaxed text-[var(--ink-secondary)]">
+              {data.showcaseMeta.rewardsSubtitle}
+            </p>
+          )}
+        </div>
+
+        <div class="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-4">
+          {media.rewards.map((reward) => (
+            <div class="scroll-reveal">
+              <button
+                type="button"
+                data-lightbox-src={reward.src}
+                data-lightbox-label={`${data.title}: ${reward.label} Hero Reward`}
+                class="group flex w-full flex-col items-center rounded-[24px] border border-[var(--hairline)] bg-white p-5 text-center cursor-zoom-in transition-transform duration-200 hover:-translate-y-1"
+              >
+                <img
+                  src={reward.src}
+                  alt={`${reward.label} hero unlockable reward`}
+                  width="260"
+                  height="381"
+                  loading="lazy"
+                  decoding="async"
+                  class="h-[170px] w-auto object-contain"
+                />
+                <span class="mt-4 text-sm font-semibold tracking-tight text-[#1d1d1f]">
+                  {reward.label} Suit
+                </span>
+              </button>
+            </div>
+          ))}
+        </div>
+      </section>
+    )}
+
+    <!-- Interactive Story Chapters ("Behind the craft") -->
+    <section
+      class="apple-container py-20 sm:py-28"
+      aria-labelledby="craft-heading"
+    >
+      <div class="grid gap-12 lg:grid-cols-[36%_1fr] lg:items-start">
+        <div class="lg:sticky lg:top-24">
+          <h2
+            id="craft-heading"
+            class="text-3xl font-semibold tracking-tight text-[var(--ink)] sm:text-4xl"
+          >
+            Behind the craft.
+          </h2>
+          <p class="mt-3 text-base leading-relaxed text-[var(--ink-secondary)]">
+            Explore the design choices and native Apple frameworks that shape {data.title}.
+          </p>
+        </div>
+
+        <!-- Non-exclusive native accordion so readers can open and compare chapters freely -->
+        <div class="apple-accordion">
+          {data.storyChapters.map((chapter, i) => (
+            <details open={i === 0}>
+              <summary>
+                <span>{chapter.title}</span>
+              </summary>
+              <div class="pb-7 pl-7 pr-2 space-y-3">
+                <p class="text-base font-medium text-[var(--ink)]">
+                  {chapter.lead}
+                </p>
+                <p class="text-[15px] leading-relaxed text-[var(--ink-secondary)]">
+                  {chapter.body}
+                </p>
+                <p class="pt-1 text-xs font-medium text-[var(--ink-secondary)]">
+                  {chapter.detailTag}
+                </p>
+              </div>
+            </details>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <!-- Horizontal Specs Strip & Next Story Navigation -->
+    <section class="apple-surface py-16">
+      <div class="apple-container">
+        <dl class="grid gap-8 sm:grid-cols-3">
+          <div>
+            <dt class="text-xs text-[var(--ink-secondary)]">Experience</dt>
+            <dd class="mt-1.5 text-base font-semibold text-[var(--ink)]">
+              {data.lineup.experience}
+            </dd>
+          </div>
+          <div>
+            <dt class="text-xs text-[var(--ink-secondary)]">Signature Frameworks</dt>
+            <dd class="mt-1.5 text-base font-semibold text-[var(--ink)]">
+              {data.frameworks.join(' · ')}
+            </dd>
+          </div>
+          <div>
+            <dt class="text-xs text-[var(--ink-secondary)]">Source Repository</dt>
+            <dd class="mt-1.5 text-base font-semibold">
+              <a
+                href={data.github}
+                target="_blank"
+                rel="noopener noreferrer"
+                class="apple-link"
+              >
+                github.com/vincenzopiconee/{data.title} &rsaquo;
+              </a>
+            </dd>
+          </div>
+        </dl>
+
+        <nav
+          aria-label="More projects"
+          class="mt-14 flex items-center justify-between border-t border-[var(--hairline)] pt-8 text-sm font-medium"
+        >
+          {prev ? (
+            <a href={`/projects/${prev.id}`} class="apple-link">
+              &lsaquo; {prev.data.title}
+            </a>
+          ) : (
+            <span />
+          )}
+          {next && (
+            <a href={`/projects/${next.id}`} class="apple-link">
+              Next story: {next.data.title} &rsaquo;
+            </a>
+          )}
+        </nav>
+      </div>
+    </section>
+  </article>
+
+  <MediaLightbox />
+</BaseLayout>

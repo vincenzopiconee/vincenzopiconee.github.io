@@ -1,0 +1,117 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+const links = [
+  {
+    name: 'GitHub',
+    handle: 'github.com/vincenzopiconee',
+    description: 'Source code, Swift repositories, and ongoing experiments.',
+    href: 'https://github.com/vincenzopiconee',
+    external: true,
+  },
+  {
+    name: 'LinkedIn',
+    handle: 'linkedin.com/in/vincenzo-piconee',
+    description: 'Academic journey, experience, and professional network.',
+    href: 'https://www.linkedin.com/in/vincenzo-piconee',
+    external: true,
+  },
+  {
+    name: 'Email',
+    handle: 'vincenzopicone22@gmail.com',
+    description: 'Reach out directly about internships, collaborations, or iOS projects.',
+    href: 'mailto:vincenzopicone22@gmail.com',
+    external: false,
+  },
+];
+---
+
+<BaseLayout
+  title="Profile | Vincenzo Picone"
+  description="Vincenzo Picone, Computer Science student and iOS developer. Connect via GitHub, LinkedIn, or Email."
+  activeNav="profile"
+>
+  <article class="apple-container pt-14 pb-16 sm:pt-24">
+    <a href="/" class="apple-link text-sm font-medium">
+      &lsaquo; Back to Projects
+    </a>
+
+    <!-- Profile Intro: 50/50 Split (Left Half = Name, Right Half = Centered Circular Portrait) -->
+    <header class="mt-10 grid grid-cols-1 items-center gap-10 md:grid-cols-2">
+      <div>
+        <h1 class="text-5xl font-semibold tracking-[-0.035em] text-[var(--ink)] sm:text-6xl">
+          Vincenzo Picone
+        </h1>
+        <p class="mt-4 max-w-lg text-xl font-medium leading-relaxed text-[var(--ink-secondary)] sm:text-2xl">
+          Computer Science student building native iOS apps with Swift and SwiftUI.
+        </p>
+      </div>
+
+      <div class="flex justify-center">
+        <img
+          src="/media/profile.jpg"
+          alt="Vincenzo Picone"
+          width="640"
+          height="640"
+          loading="eager"
+          decoding="async"
+          class="h-56 w-56 rounded-full object-cover object-center shadow-md ring-1 ring-[var(--hairline)] sm:h-64 sm:w-64 lg:h-[300px] lg:w-[300px]"
+        />
+      </div>
+    </header>
+
+    <!-- About Me -->
+    <section class="mt-14 grid gap-10 border-t border-[var(--hairline)] pt-12 lg:grid-cols-[30%_1fr]">
+      <h2 class="text-2xl font-semibold tracking-tight text-[var(--ink)]">
+        About me
+      </h2>
+
+      <div class="max-w-2xl space-y-5 text-base leading-relaxed text-[var(--ink-secondary)] sm:text-lg">
+        <p>
+          I build native iOS apps with Swift and SwiftUI, focusing on clean architecture, fast performance, and interfaces that feel right at home on Apple platforms.
+        </p>
+        <p>
+          I am currently a Computer Science student exploring how solid software design and human-computer interaction come together on mobile. From Quick Look document previews and memory-safe media rendering to local peer-to-peer networking and accessible UI, I care about getting the details right under the hood and on screen.
+        </p>
+        <p>
+          Every project in this portfolio started with a concrete idea and grew through iteration, testing, and attention to native Apple platform conventions.
+        </p>
+      </div>
+    </section>
+
+    <!-- Full-Width Spacious Contact Cards (Single-Line Links) -->
+    <section class="mt-16 border-t border-[var(--hairline)] pt-12" aria-labelledby="connect-heading">
+      <div>
+        <h2 id="connect-heading" class="text-2xl font-semibold tracking-tight text-[var(--ink)]">
+          Connections
+        </h2>
+        <p class="mt-2 text-sm text-[var(--ink-secondary)]">
+          Find my code, follow my work, or send a message directly.
+        </p>
+      </div>
+
+      <div class="mt-8 grid grid-cols-1 gap-5 md:grid-cols-3">
+        {links.map((item) => (
+          <a
+            data-dynamic-card
+            href={item.href}
+            target={item.external ? '_blank' : undefined}
+            rel={item.external ? 'noopener noreferrer' : undefined}
+            class="dynamic-card flex min-h-[185px] flex-col justify-between overflow-hidden rounded-[26px] p-7 sm:p-8"
+          >
+            <div class="card-spotlight" aria-hidden="true"></div>
+            <div class="relative z-10">
+              <p class="text-xl font-semibold tracking-tight text-[var(--ink)]">{item.name}</p>
+              <p class="mt-2 text-sm leading-relaxed text-[var(--ink-secondary)]">
+                {item.description}
+              </p>
+            </div>
+            <p class="apple-link relative z-10 mt-7 whitespace-nowrap text-sm font-medium">
+              {item.handle} &rsaquo;
+            </p>
+          </a>
+        ))}
+      </div>
+    </section>
+  </article>
+</BaseLayout>

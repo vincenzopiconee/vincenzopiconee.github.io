@@ -1,0 +1,510 @@
+@import "tailwindcss";
+
+/* ==========================================================================
+   Registered Custom Properties for Pointer Spotlight (interactive-content-reveal)
+   ========================================================================== */
+@property --spot-inner {
+  syntax: "<length-percentage>";
+  inherits: true;
+  initial-value: 0px;
+}
+
+@property --spot-outer {
+  syntax: "<length-percentage>";
+  inherits: true;
+  initial-value: 0px;
+}
+
+/* ==========================================================================
+   Apple-Inspired Minimal Color System (Follows OS Light & Dark Mode)
+   ========================================================================== */
+:root {
+  --bg-light: #ffffff;
+  --bg-dark: #000000;
+
+  --surface-light: #f5f5f7;
+  --surface-dark: #161617;
+
+  --surface-hover-light: #efeff2;
+  --surface-hover-dark: #1d1d1f;
+
+  --nav-light: rgba(255, 255, 255, 0.82);
+  --nav-dark: rgba(0, 0, 0, 0.78);
+
+  --ink-light: #1d1d1f;
+  --ink-dark: #f5f5f7;
+
+  --ink-secondary-light: #6e6e73;
+  --ink-secondary-dark: #86868b;
+
+  --hairline-light: rgba(0, 0, 0, 0.08);
+  --hairline-dark: rgba(255, 255, 255, 0.12);
+
+  --hairline-hover-light: rgba(0, 113, 227, 0.28);
+  --hairline-hover-dark: rgba(41, 151, 255, 0.36);
+
+  --link-light: #0066cc;
+  --link-dark: #2997ff;
+
+  --pill-bg-light: #0071e3;
+  --pill-bg-dark: #0071e3;
+
+  --spot-tint-light: rgba(0, 113, 227, 0.085);
+  --spot-tint-dark: rgba(41, 151, 255, 0.14);
+
+  --bg: var(--bg-light);
+  --surface: var(--surface-light);
+  --surface-hover: var(--surface-hover-light);
+  --nav: var(--nav-light);
+  --ink: var(--ink-light);
+  --ink-secondary: var(--ink-secondary-light);
+  --hairline: var(--hairline-light);
+  --hairline-hover: var(--hairline-hover-light);
+  --link: var(--link-light);
+  --pill-bg: var(--pill-bg-light);
+  --spot-tint: var(--spot-tint-light);
+
+  @media (prefers-color-scheme: dark) {
+    --bg: var(--bg-dark);
+    --surface: var(--surface-dark);
+    --surface-hover: var(--surface-hover-dark);
+    --nav: var(--nav-dark);
+    --ink: var(--ink-dark);
+    --ink-secondary: var(--ink-secondary-dark);
+    --hairline: var(--hairline-dark);
+    --hairline-hover: var(--hairline-hover-dark);
+    --link: var(--link-dark);
+    --pill-bg: var(--pill-bg-dark);
+    --spot-tint: var(--spot-tint-dark);
+  }
+
+  @supports (color: light-dark(white, black)) {
+    --bg: light-dark(var(--bg-light), var(--bg-dark));
+    --surface: light-dark(var(--surface-light), var(--surface-dark));
+    --surface-hover: light-dark(var(--surface-hover-light), var(--surface-hover-dark));
+    --nav: light-dark(var(--nav-light), var(--nav-dark));
+    --ink: light-dark(var(--ink-light), var(--ink-dark));
+    --ink-secondary: light-dark(var(--ink-secondary-light), var(--ink-secondary-dark));
+    --hairline: light-dark(var(--hairline-light), var(--hairline-dark));
+    --hairline-hover: light-dark(var(--hairline-hover-light), var(--hairline-hover-dark));
+    --link: light-dark(var(--link-light), var(--link-dark));
+    --pill-bg: light-dark(var(--pill-bg-light), var(--pill-bg-dark));
+    --spot-tint: light-dark(var(--spot-tint-light), var(--spot-tint-dark));
+  }
+
+  color-scheme: light dark;
+  accent-color: var(--link);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  @view-transition {
+    navigation: auto;
+  }
+}
+
+html {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  background-color: var(--bg);
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  background-color: var(--bg);
+  color: var(--ink);
+  min-height: 100dvh;
+}
+
+/* Global Accessible Focus Outlines (natural-interactions) */
+:where(a, button, summary, [tabindex]):focus-visible {
+  outline: 2px solid CanvasText;
+  outline-offset: 3px;
+}
+
+/* ==========================================================================
+   Wide Full-Span Container
+   ========================================================================== */
+.apple-container {
+  width: 100%;
+  max-width: 1440px;
+  margin-inline: auto;
+  padding-inline: clamp(1.25rem, 3.5vw, 3rem);
+}
+
+.apple-nav {
+  background-color: var(--nav);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  border-bottom: 1px solid var(--hairline);
+}
+
+.apple-surface {
+  background-color: var(--surface);
+}
+
+.apple-link {
+  color: var(--link);
+}
+
+.apple-link:hover {
+  text-decoration: underline;
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 3px;
+}
+
+/* Primary Apple Blue Button Link with Tactile Hover, Press & Focus Feedback */
+.apple-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  border-radius: 9999px;
+  background-color: var(--pill-bg);
+  color: #ffffff;
+  font-weight: 500;
+  transition: background-color 150ms ease-out, box-shadow 150ms ease-out, scale 150ms ease-out;
+}
+
+.apple-pill:hover {
+  background-color: #0077ed;
+  box-shadow: 0 6px 18px -6px rgba(0, 113, 227, 0.55);
+}
+
+.apple-pill:active {
+  scale: 0.97;
+}
+
+/* Dual-theme app icon visibility */
+.icon-dark-only {
+  display: none;
+}
+
+@media (prefers-color-scheme: dark) {
+  .icon-light-only {
+    display: none;
+  }
+  .icon-dark-only {
+    display: block;
+  }
+}
+
+/* ==========================================================================
+   Cursor-Highlight Dynamic Cards (Per-App Icon-Matched Themes + Backgrounds)
+   ========================================================================== */
+.dynamic-card {
+  position: relative;
+  isolation: isolate;
+  --c-bg: var(--card-bg-light, var(--surface-light));
+  --c-bg-hover: var(--card-bg-hover-light, var(--surface-hover-light));
+  --c-border: var(--card-border-light, var(--hairline-light));
+  --c-border-hover: var(--card-border-hover-light, var(--hairline-hover-light));
+  --c-spot: var(--card-spot-light, var(--spot-tint-light));
+
+  background-color: var(--c-bg);
+  border: 1px solid var(--c-border);
+  cursor: pointer;
+  transition:
+    background-color 220ms ease-out,
+    border-color 220ms ease-out,
+    box-shadow 260ms ease-out;
+}
+
+@media (prefers-color-scheme: dark) {
+  .dynamic-card {
+    --c-bg: var(--card-bg-dark, var(--surface-dark));
+    --c-bg-hover: var(--card-bg-hover-dark, var(--surface-hover-dark));
+    --c-border: var(--card-border-dark, var(--hairline-dark));
+    --c-border-hover: var(--card-border-hover-dark, var(--hairline-hover-dark));
+    --c-spot: var(--card-spot-dark, var(--spot-tint-dark));
+  }
+}
+
+@supports (color: light-dark(white, black)) {
+  .dynamic-card {
+    --c-bg: light-dark(
+      var(--card-bg-light, var(--surface-light)),
+      var(--card-bg-dark, var(--surface-dark))
+    );
+    --c-bg-hover: light-dark(
+      var(--card-bg-hover-light, var(--surface-hover-light)),
+      var(--card-bg-hover-dark, var(--surface-hover-dark))
+    );
+    --c-border: light-dark(
+      var(--card-border-light, var(--hairline-light)),
+      var(--card-border-dark, var(--hairline-dark))
+    );
+    --c-border-hover: light-dark(
+      var(--card-border-hover-light, var(--hairline-hover-light)),
+      var(--card-border-hover-dark, var(--hairline-hover-dark))
+    );
+    --c-spot: light-dark(
+      var(--card-spot-light, var(--spot-tint-light)),
+      var(--card-spot-dark, var(--spot-tint-dark))
+    );
+  }
+}
+
+.dynamic-card:hover {
+  background-color: var(--c-bg-hover);
+  border-color: var(--c-border-hover);
+  box-shadow: 0 20px 40px -24px rgba(0, 0, 0, 0.2);
+  --spot-inner: 95px;
+  --spot-outer: 360px;
+}
+
+/* Themed Band Surface (used on project detail hero bands) */
+.themed-band {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background-color: var(--card-bg-light, var(--surface-light));
+}
+
+@media (prefers-color-scheme: dark) {
+  .themed-band {
+    background-color: var(--card-bg-dark, var(--surface-dark));
+  }
+}
+
+@supports (color: light-dark(white, black)) {
+  .themed-band {
+    background-color: light-dark(
+      var(--card-bg-light, var(--surface-light)),
+      var(--card-bg-dark, var(--surface-dark))
+    );
+  }
+}
+
+/* Subtle App Wallpaper Layers (Biteary food doodle & Beeep lime graph grid) */
+.card-bg-pattern {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  border-radius: inherit;
+  -webkit-mask-image: linear-gradient(115deg, rgba(0, 0, 0, 0.25) 0%, rgba(0, 0, 0, 0.95) 100%);
+  mask-image: linear-gradient(115deg, rgba(0, 0, 0, 0.25) 0%, rgba(0, 0, 0, 0.95) 100%);
+}
+
+.card-bg-doodle {
+  background-repeat: repeat;
+  background-size: 300px auto;
+  opacity: 0.085;
+  mix-blend-mode: multiply;
+}
+
+.card-bg-grid {
+  background-repeat: repeat;
+  background-size: 260px auto;
+  opacity: 0.65;
+}
+
+@media (prefers-color-scheme: dark) {
+  .card-bg-doodle {
+    filter: invert(1);
+    opacity: 0.065;
+    mix-blend-mode: screen;
+  }
+  .card-bg-grid {
+    opacity: 0.14;
+    mix-blend-mode: screen;
+  }
+}
+
+.card-spotlight {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  border-radius: inherit;
+  pointer-events: none;
+  background: radial-gradient(circle at center, var(--c-spot), var(--c-spot));
+  transition: --spot-inner 240ms ease-out, --spot-outer 280ms ease-out;
+  -webkit-mask-image: radial-gradient(
+    circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
+    black var(--spot-inner, 0px),
+    transparent var(--spot-outer, 0px)
+  );
+  mask-image: radial-gradient(
+    circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
+    black var(--spot-inner, 0px),
+    transparent var(--spot-outer, 0px)
+  );
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+}
+
+/* Stretched primary link makes the entire card clickable while keeping secondary links operable */
+.card-stretched-link:active {
+  scale: none;
+}
+
+.card-stretched-link::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: inherit;
+}
+
+.card-secondary-link {
+  position: relative;
+  z-index: 2;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .dynamic-card {
+    transition:
+      transform 240ms cubic-bezier(0.22, 1, 0.36, 1),
+      background-color 220ms ease-out,
+      border-color 220ms ease-out,
+      box-shadow 260ms ease-out;
+  }
+
+  .dynamic-card:hover {
+    transform: translateY(-4px);
+  }
+
+  .dynamic-card:active {
+    transform: translateY(-1px) scale(0.992);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card-spotlight {
+    transition: none !important;
+  }
+}
+
+/* ==========================================================================
+   Native Animated Accordion (Project Story Chapters)
+   ========================================================================== */
+.apple-accordion details {
+  border-bottom: 1px solid var(--hairline);
+}
+
+.apple-accordion details:last-of-type {
+  border-bottom: 0;
+}
+
+.apple-accordion summary {
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding-block: 1.35rem;
+  font-size: 1.25rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  cursor: pointer;
+  user-select: none;
+}
+
+.apple-accordion summary::-webkit-details-marker {
+  display: none;
+}
+
+.apple-accordion summary:hover {
+  opacity: 0.78;
+}
+
+.apple-accordion summary::before {
+  content: "";
+  inline-size: 0.9em;
+  block-size: 0.9em;
+  flex-shrink: 0;
+  background-color: var(--ink-secondary);
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") no-repeat center / contain;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") no-repeat center / contain;
+  rotate: -90deg;
+}
+
+.apple-accordion details[open] > summary::before {
+  rotate: 0deg;
+  background-color: var(--ink);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .apple-accordion summary::before {
+    transition: rotate 0.22s ease, background-color 0.2s ease;
+  }
+}
+
+.apple-accordion details::details-content {
+  interpolate-size: allow-keywords;
+  overflow: clip;
+  contain: layout;
+}
+
+.apple-accordion details:not([open])::details-content {
+  block-size: 0;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .apple-accordion details::details-content {
+    transition: block-size, content-visibility, display;
+    transition-duration: 0.3s;
+    transition-timing-function: ease-in-out;
+    transition-behavior: allow-discrete;
+  }
+}
+
+/* ==========================================================================
+   Decorative Vertical Scroll-Driven Reveals
+   ========================================================================== */
+@media (prefers-reduced-motion: no-preference) {
+  @supports ((animation-timeline: view()) and (animation-range: entry)) {
+    @keyframes apple-reveal {
+      from {
+        opacity: 0;
+        transform: translateY(22px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .scroll-reveal {
+      animation: apple-reveal linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 28%;
+    }
+  }
+}
+
+/* ==========================================================================
+   Native Screenshot Lightbox Dialog
+   ========================================================================== */
+dialog.media-lightbox {
+  background: transparent;
+  color: var(--ink);
+  border: none;
+  padding: 0;
+  max-width: min(92vw, 960px);
+  max-height: 92dvh;
+  margin: auto;
+  overflow: visible;
+}
+
+dialog.media-lightbox::backdrop {
+  background-color: rgba(0, 0, 0, 0.78);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  dialog.media-lightbox[open] {
+    transition: opacity 0.2s ease-out, transform 0.2s ease-out, display 0.2s, overlay 0.2s;
+    transition-behavior: allow-discrete;
+    opacity: 1;
+    transform: scale(1);
+  }
+  @starting-style {
+    dialog.media-lightbox[open] {
+      opacity: 0;
+      transform: scale(0.97);
+    }
+  }
+}
