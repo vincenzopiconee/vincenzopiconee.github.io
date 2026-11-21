@@ -32,10 +32,10 @@ function getCardStyle(theme: (typeof projects)[number]['data']['theme']) {
   <!-- Hero: Big Name With Brief Info Directly Underneath -->
   <section class="apple-container pt-14 pb-12 sm:pt-22 sm:pb-16">
     <h1 class="text-5xl font-semibold tracking-[-0.035em] text-[var(--ink)] sm:text-7xl sm:leading-[1.03]">
-      Vincenzo Picone
+      Hi, I'm Vincenzo Picone
     </h1>
-    <p class="mt-4 max-w-2xl text-lg leading-relaxed text-[var(--ink-secondary)] sm:text-2xl">
-      Computer Science student building native iOS apps with Swift and SwiftUI. Focused on clean architecture, speed, and interfaces that feel right at home on Apple platforms.
+    <p class="mt-4 max-w-7xl text-lg leading-relaxed text-[var(--ink-secondary)] sm:text-2xl">
+      A Computer Science student who loves building native iOS apps with Swift and SwiftUI, always exploring new frameworks along the way. Focused on clean architecture, speed, and interfaces that feel right at home on Apple platforms. Hope you enjoy exploring my projects below.
     </p>
     <div class="mt-5">
       <a href="/profile" class="apple-link text-sm font-medium">
@@ -51,10 +51,9 @@ function getCardStyle(theme: (typeof projects)[number]['data']['theme']) {
         const { data, id } = project;
         const media = getProjectMedia(id);
         const isHeroWide = index === 0;
-        const previewImage = media.demoPoster ?? media.screenshots[0]?.src;
-        // Trustfall lead artwork (UFO abduction panel)
-        const featuredArtwork = !previewImage ? media.artworks[2] ?? media.artworks[0] : undefined;
-        const hasRightVisual = Boolean(previewImage || featuredArtwork);
+        // Home cards stay clean and consistent; only Trustfall shows its lead comic artwork on the wide hero card.
+        const featuredArtwork = isHeroWide ? media.artworks[2] ?? media.artworks[0] : undefined;
+        const hasRightVisual = Boolean(featuredArtwork);
 
         return (
           <div class:list={[isHeroWide && 'md:col-span-2', index > 0 && 'scroll-reveal']}>
@@ -145,27 +144,8 @@ function getCardStyle(theme: (typeof projects)[number]['data']['theme']) {
                   </div>
                 </div>
 
-                <!-- Right Side Visual (Screenshots / Trustfall Artwork) -->
-                {previewImage ? (
-                  <div class="flex justify-center sm:justify-end">
-                    <div
-                      class:list={[
-                        'overflow-hidden rounded-[1.5rem] border border-[var(--hairline)] bg-black shadow-sm',
-                        isHeroWide ? 'h-[260px] sm:h-[290px]' : 'h-[215px] sm:h-[235px]',
-                      ]}
-                    >
-                      <img
-                        src={previewImage}
-                        alt={`${data.title} preview`}
-                        width="390"
-                        height="844"
-                        loading={index < 2 ? 'eager' : 'lazy'}
-                        decoding="async"
-                        class="h-full w-auto object-cover"
-                      />
-                    </div>
-                  </div>
-                ) : featuredArtwork && (
+                <!-- Right Side Visual (Trustfall Lead Artwork Only; App Screenshots Live Inside Project Pages) -->
+                {featuredArtwork && (
                   <div class="flex justify-center md:justify-end">
                     <div class="overflow-hidden rounded-2xl border border-black/10 bg-white shadow-sm max-w-[460px] w-full">
                       <img

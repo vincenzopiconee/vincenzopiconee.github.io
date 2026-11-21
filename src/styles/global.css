@@ -43,6 +43,11 @@
   --hairline-hover-light: rgba(0, 113, 227, 0.28);
   --hairline-hover-dark: rgba(41, 151, 255, 0.36);
 
+  --control-bg-light: rgba(210, 210, 215, 0.64);
+  --control-bg-dark: rgba(66, 66, 69, 0.72);
+  --control-hover-light: rgba(210, 210, 215, 0.92);
+  --control-hover-dark: rgba(92, 92, 96, 0.92);
+
   --link-light: #0066cc;
   --link-dark: #2997ff;
 
@@ -60,6 +65,8 @@
   --ink-secondary: var(--ink-secondary-light);
   --hairline: var(--hairline-light);
   --hairline-hover: var(--hairline-hover-light);
+  --control-bg: var(--control-bg-light);
+  --control-hover: var(--control-hover-light);
   --link: var(--link-light);
   --pill-bg: var(--pill-bg-light);
   --spot-tint: var(--spot-tint-light);
@@ -73,6 +80,8 @@
     --ink-secondary: var(--ink-secondary-dark);
     --hairline: var(--hairline-dark);
     --hairline-hover: var(--hairline-hover-dark);
+    --control-bg: var(--control-bg-dark);
+    --control-hover: var(--control-hover-dark);
     --link: var(--link-dark);
     --pill-bg: var(--pill-bg-dark);
     --spot-tint: var(--spot-tint-dark);
@@ -87,6 +96,8 @@
     --ink-secondary: light-dark(var(--ink-secondary-light), var(--ink-secondary-dark));
     --hairline: light-dark(var(--hairline-light), var(--hairline-dark));
     --hairline-hover: light-dark(var(--hairline-hover-light), var(--hairline-hover-dark));
+    --control-bg: light-dark(var(--control-bg-light), var(--control-bg-dark));
+    --control-hover: light-dark(var(--control-hover-light), var(--control-hover-dark));
     --link: light-dark(var(--link-light), var(--link-dark));
     --pill-bg: light-dark(var(--pill-bg-light), var(--pill-bg-dark));
     --spot-tint: light-dark(var(--spot-tint-light), var(--spot-tint-dark));
@@ -472,6 +483,132 @@ body {
       animation-range: entry 0% entry 28%;
     }
   }
+}
+
+/* ==========================================================================
+   Horizontal Screenshot Carousel (modern-web-guidance: carousel)
+   ========================================================================== */
+.shot-carousel {
+  display: flex;
+  flex-direction: column;
+}
+
+.shot-carousel-track {
+  order: 1;
+  display: flex;
+  align-items: flex-start;
+  gap: 1.25rem;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  overscroll-behavior-x: contain;
+  touch-action: manipulation;
+  scrollbar-width: none;
+  padding-block: 0.25rem 0.75rem;
+}
+
+.shot-carousel-track::-webkit-scrollbar {
+  display: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .shot-carousel-track {
+    scroll-behavior: smooth;
+  }
+}
+
+/* Portrait slides (single demo video & portrait screenshots share identical width & height) */
+.shot-carousel-slide {
+  flex: 0 0 min(78vw, 280px);
+  scroll-snap-align: start;
+}
+
+@media (min-width: 640px) {
+  .shot-carousel-slide {
+    flex: 0 0 305px;
+  }
+}
+
+/* Dual synchronized portrait videos grouped as a single slide (2 x 305px + 16px gap = 626px) */
+.shot-carousel-slide.shot-carousel-slide-video-dual {
+  flex: 0 0 min(100%, 626px);
+}
+
+/* Landscape demo video & landscape screenshots height-matched across breakpoints */
+.shot-carousel-slide.shot-carousel-slide-video-landscape {
+  flex: 0 0 min(88%, 540px);
+}
+
+.shot-carousel-slide.shot-carousel-slide-landscape {
+  flex: 0 0 min(90%, 660px);
+}
+
+@media (min-width: 768px) {
+  .shot-carousel-slide.shot-carousel-slide-video-landscape {
+    flex: 0 0 551px;
+  }
+
+  .shot-carousel-slide.shot-carousel-slide-landscape {
+    flex: 0 0 674px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .shot-carousel-slide.shot-carousel-slide-video-landscape {
+    flex: 0 0 676px;
+  }
+
+  .shot-carousel-slide.shot-carousel-slide-landscape {
+    flex: 0 0 826px;
+  }
+}
+
+.shot-carousel-footer {
+  order: 2;
+}
+
+.carousel-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 9999px;
+  background-color: var(--control-bg);
+  color: var(--ink);
+  touch-action: manipulation;
+  cursor: pointer;
+  transition: background-color 0.2s ease, opacity 0.2s ease;
+}
+
+.carousel-btn:hover:not(:disabled) {
+  background-color: var(--control-hover);
+}
+
+.carousel-btn:disabled {
+  opacity: 0.32;
+  cursor: not-allowed;
+}
+
+.sync-control-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  height: 36px;
+  padding-inline: 0.9rem;
+  border-radius: 9999px;
+  background-color: var(--control-bg);
+  color: var(--ink);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  line-height: 1;
+  touch-action: manipulation;
+  cursor: pointer;
+  transition: background-color 0.2s ease, opacity 0.2s ease;
+}
+
+.sync-control-btn:hover {
+  background-color: var(--control-hover);
 }
 
 /* ==========================================================================

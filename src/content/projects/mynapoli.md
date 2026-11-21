@@ -4,7 +4,7 @@ kicker: "Mobility · 3D MapKit & GTFS"
 headline: "Naples transit, mapped in three dimensions."
 subtitle: "Exploring buses, metro lines, and historic funiculars with real municipal open data."
 cardStat: "120+ Lines · 2,400+ Stops"
-order: 4
+order: 5
 year: "2024–2025"
 github: "https://github.com/vincenzopiconee/MyNapoli"
 theme:

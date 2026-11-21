@@ -1,0 +1,386 @@
+---
+import type { VideoMediaItem } from '../utils/media';
+
+interface Props {
+  title: string;
+  videos: VideoMediaItem[];
+}
+
+const { title, videos } = Astro.props;
+const isMulti = videos.length > 1;
+const singleVideo = videos.length === 1 ? videos[0] : null;
+const isSingleLandscape = Boolean(singleVideo?.isLandscape);
+const lazyVideoAttr = { loading: 'lazy' } as Record<string, string>;
+---
+
+{singleVideo && (
+  <figure class="w-full">
+    <div
+      class:list={[
+        'overflow-hidden border-[3px] border-[#1d1d1f] bg-black shadow-lg',
+        isSingleLandscape ? 'rounded-[1.5rem]' : 'rounded-[2rem]',
+      ]}
+    >
+      <video
+        controls
+        playsinline
+        muted
+        loop
+        autoplay
+        width={singleVideo.width ?? (isSingleLandscape ? 1138 : 604)}
+        height={singleVideo.height ?? (isSingleLandscape ? 640 : 1314)}
+        preload="metadata"
+        poster={singleVideo.poster}
+        aria-label={`${title}: ${singleVideo.label}`}
+        class="block h-auto w-full object-contain"
+        data-single-autoplay
+        {...lazyVideoAttr}
+      >
+        <source
+          src={singleVideo.src}
+          type={singleVideo.src.endsWith('.webm') ? 'video/webm' : 'video/mp4'}
+        />
+      </video>
+    </div>
+    <figcaption class="mt-3 px-1 text-center text-xs font-medium text-[var(--ink-secondary)]">
+      {singleVideo.label}
+    </figcaption>
+  </figure>
+)}
+
+{isMulti && (
+  <div
+    class="w-full"
+    data-sync-video-group
+    role="group"
+    aria-label={`${title} synchronized device demos`}
+  >
+    <div class="grid grid-cols-2 gap-3 sm:gap-4">
+      {videos.map((video) => (
+        <figure class="min-w-0">
+          <div class="overflow-hidden rounded-[1.5rem] border-[3px] border-[#1d1d1f] bg-black shadow-lg sm:rounded-[2rem]">
+            <video
+              controls
+              playsinline
+              muted
+              width={video.width ?? 604}
+              height={video.height ?? 1314}
+              preload="metadata"
+              poster={video.poster}
+              aria-label={`${title} demo: ${video.label}`}
+              class="block h-auto w-full object-contain"
+              data-sync-video
+              {...lazyVideoAttr}
+            >
+              <source
+                src={video.src}
+                type={video.src.endsWith('.webm') ? 'video/webm' : 'video/mp4'}
+              />
+            </video>
+          </div>
+          <figcaption class="mt-3 px-1 text-center text-xs font-medium text-[var(--ink-secondary)]">
+            {video.label}
+          </figcaption>
+        </figure>
+      ))}
+    </div>
+
+    <!-- Shared keyboard-accessible Play/Pause + Restart controls (no aria-pressed because label toggles) -->
+    <div class="mt-4 flex items-center justify-center gap-2.5">
+      <button type="button" class="sync-control-btn" data-sync-toggle>
+        <svg
+          class="h-3.5 w-3.5"
+          viewBox="0 0 24 24"
+          fill="currentColor"
+          aria-hidden="true"
+          data-icon-play
+        >
+          <path d="M8 5.14v14l11-7-11-7z" />
+        </svg>
+        <svg
+          class="h-3.5 w-3.5"
+          viewBox="0 0 24 24"
+          fill="currentColor"
+          aria-hidden="true"
+          data-icon-pause
+          hidden
+        >
+          <path d="M6 5h4v14H6zm8 0h4v14h-4z" />
+        </svg>
+        <span data-sync-toggle-label>Play Both</span>
+      </button>
+
+      <button type="button" class="sync-control-btn" data-sync-restart>
+        <svg
+          class="h-3.5 w-3.5"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <path d="M3 12a9 9 0 1 0 3-6.7L3 8" />
+          <path d="M3 3v5h5" />
+        </svg>
+        <span>Restart</span>
+      </button>
+    </div>
+  </div>
+)}
+
+<script type="module">
+  const reducedMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+  // Respect prefers-reduced-motion for single autoplaying demos
+  function syncSingleAutoplay(prefersReduced) {
+    document.querySelectorAll('video[data-single-autoplay]').forEach((video) => {
+      if (prefersReduced) {
+        video.removeAttribute('autoplay');
+        video.pause();
+      }
+    });
+  }
+
+  syncSingleAutoplay(reducedMotionQuery.matches);
+  reducedMotionQuery.addEventListener('change', (event) => {
+    syncSingleAutoplay(event.matches);
+  });
+
+  // Synchronized multi-device demo controller
+  document.querySelectorAll('[data-sync-video-group]').forEach((group) => {
+    const videos = Array.from(group.querySelectorAll('video[data-sync-video]'));
+    const toggleBtn = group.querySelector('[data-sync-toggle]');
+    const toggleLabel = group.querySelector('[data-sync-toggle-label]');
+    const playIcon = group.querySelector('[data-icon-play]');
+    const pauseIcon = group.querySelector('[data-icon-pause]');
+    const restartBtn = group.querySelector('[data-sync-restart]');
+
+    if (videos.length < 2) return;
+
+    const lead = videos[0];
+    let userPaused = reducedMotionQuery.matches;
+    let isInView = false;
+    let wantPlaying = false;
+    let suppressSyncUntil = 0;
+    let bufferingRecovery = false;
+    let playEpoch = 0;
+
+    function isAnyFullscreen() {
+      return Boolean(
+        document.fullscreenElement ||
+          videos.some((v) => v.webkitDisplayingFullscreen)
+      );
+    }
+
+    function setToggleUI(playing) {
+      if (toggleLabel) {
+        toggleLabel.textContent = playing ? 'Pause Both' : 'Play Both';
+      }
+      if (playIcon) playIcon.hidden = playing;
+      if (pauseIcon) pauseIcon.hidden = !playing;
+    }
+
+    function areAllReady() {
+      return videos.every((v) => v.readyState >= 2);
+    }
+
+    function waitUntilAllReady() {
+      return Promise.all(
+        videos.map((v) => {
+          if (v.readyState >= 2) return Promise.resolve();
+          return new Promise((resolve) => {
+            let settled = false;
+            const done = () => {
+              if (settled) return;
+              settled = true;
+              clearTimeout(timer);
+              v.removeEventListener('loadeddata', done);
+              v.removeEventListener('canplay', done);
+              v.removeEventListener('error', done);
+              resolve();
+            };
+            const timer = window.setTimeout(done, 4000);
+            v.addEventListener('loadeddata', done, { once: true });
+            v.addEventListener('canplay', done, { once: true });
+            v.addEventListener('error', done, { once: true });
+            if (v.preload !== 'auto') {
+              v.preload = 'auto';
+              if (v.readyState === 0 || v.networkState === 1) {
+                v.load();
+              }
+            }
+          });
+        })
+      );
+    }
+
+    function pauseAll(markUserPaused = false) {
+      playEpoch++;
+      wantPlaying = false;
+      if (markUserPaused) userPaused = true;
+      suppressSyncUntil = performance.now() + 200;
+      videos.forEach((v) => {
+        if (!v.paused) v.pause();
+      });
+      setToggleUI(false);
+    }
+
+    async function playAll(syncTime = null) {
+      const epoch = ++playEpoch;
+      wantPlaying = true;
+      bufferingRecovery = false;
+
+      if (!areAllReady()) {
+        await waitUntilAllReady();
+      }
+
+      if (epoch !== playEpoch || !wantPlaying || userPaused) return;
+      if (!isInView && !isAnyFullscreen()) return;
+
+      const target = syncTime !== null ? syncTime : lead.currentTime;
+      suppressSyncUntil = performance.now() + 240;
+
+      videos.forEach((v) => {
+        if (Math.abs(v.currentTime - target) > 0.08) {
+          try {
+            v.currentTime = target;
+          } catch {
+            // Ignore seek before metadata settles
+          }
+        }
+      });
+
+      try {
+        await Promise.all(videos.map((v) => v.play()));
+        if (epoch === playEpoch && wantPlaying) {
+          setToggleUI(true);
+        }
+      } catch {
+        // Autoplay blocked (e.g. Low Power Mode): stay paused cleanly
+        if (epoch === playEpoch) {
+          pauseAll(false);
+        }
+      }
+    }
+
+    // Keep peers synchronized when the user interacts with either native video control bar
+    videos.forEach((video) => {
+      video.addEventListener('play', () => {
+        if (performance.now() < suppressSyncUntil) return;
+        userPaused = false;
+        playAll(video.currentTime);
+      });
+
+      video.addEventListener('pause', () => {
+        if (performance.now() < suppressSyncUntil) return;
+        if (video.ended || bufferingRecovery) return;
+        pauseAll(true);
+      });
+
+      video.addEventListener('seeked', () => {
+        if (performance.now() < suppressSyncUntil) return;
+        const target = video.currentTime;
+        suppressSyncUntil = performance.now() + 200;
+        videos.forEach((peer) => {
+          if (peer !== video && Math.abs(peer.currentTime - target) > 0.12) {
+            try {
+              peer.currentTime = target;
+            } catch {
+              // Ignore seek on unloaded peer
+            }
+          }
+        });
+      });
+
+      // If one video stalls to buffer, briefly hold peers so both stay in lockstep
+      video.addEventListener('waiting', () => {
+        if (!wantPlaying || userPaused) return;
+        bufferingRecovery = true;
+        suppressSyncUntil = performance.now() + 200;
+        videos.forEach((peer) => {
+          if (peer !== video && !peer.paused) peer.pause();
+        });
+      });
+
+      video.addEventListener('canplay', () => {
+        if (bufferingRecovery && wantPlaying && !userPaused && areAllReady()) {
+          playAll(lead.currentTime);
+        }
+      });
+
+      // Clean synchronized loop when the paired recording finishes
+      video.addEventListener('ended', () => {
+        if (userPaused || (!isInView && !isAnyFullscreen())) {
+          setToggleUI(false);
+          return;
+        }
+        const allNearEnd = videos.every(
+          (v) => v.ended || (Number.isFinite(v.duration) && v.currentTime >= v.duration - 0.15)
+        );
+        if (video === lead || allNearEnd) {
+          playAll(0);
+        }
+      });
+    });
+
+    // Subtle drift guard during playback
+    lead.addEventListener('timeupdate', () => {
+      if (performance.now() < suppressSyncUntil || !wantPlaying || bufferingRecovery) return;
+      if (videos.some((v) => v.paused || v.seeking || v.readyState < 2)) return;
+      const leadTime = lead.currentTime;
+      for (let i = 1; i < videos.length; i++) {
+        if (Math.abs(videos[i].currentTime - leadTime) > 0.22) {
+          suppressSyncUntil = performance.now() + 180;
+          videos[i].currentTime = leadTime;
+        }
+      }
+    });
+
+    toggleBtn?.addEventListener('click', () => {
+      const anyPlaying = videos.some((v) => !v.paused && !v.ended);
+      if (anyPlaying) {
+        pauseAll(true);
+      } else {
+        userPaused = false;
+        const atEnd = videos.every(
+          (v) => v.ended || (Number.isFinite(v.duration) && v.currentTime >= v.duration - 0.15)
+        );
+        playAll(atEnd ? 0 : lead.currentTime);
+      }
+    });
+
+    restartBtn?.addEventListener('click', () => {
+      userPaused = false;
+      playAll(0);
+    });
+
+    // Start in sync once visible in viewport; pause when scrolled away
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          isInView = entry.isIntersecting;
+          if (isInView) {
+            if (!userPaused && !reducedMotionQuery.matches) {
+              playAll();
+            }
+          } else if (!isAnyFullscreen()) {
+            pauseAll(false);
+          }
+        }
+      },
+      { threshold: 0.2 }
+    );
+
+    observer.observe(group);
+
+    reducedMotionQuery.addEventListener('change', (event) => {
+      if (event.matches) {
+        pauseAll(true);
+      }
+    });
+
+    setToggleUI(false);
+  });
+</script>

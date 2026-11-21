@@ -1,7 +1,7 @@
 ---
 title: "Beeep"
 kicker: "Party · Local Mesh & AirPlay"
-headline: "No servers. No accounts. Just the room."
+headline: "Where every language meets around one table."
 subtitle: "A local peer-to-peer party game built to spark funny connections between international students through the funniest words of every language and culture."
 cardStat: "Bonjour Mesh · Dual-Screen"
 order: 3

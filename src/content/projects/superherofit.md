@@ -4,7 +4,7 @@ kicker: "Health · HealthKit & 2D Compositing"
 headline: "Turn daily movement into your own hero."
 subtitle: "A local-first fitness companion pairing HealthKit goals with a 7-layer customizable avatar."
 cardStat: "HealthKit · 7-Layer Avatar"
-order: 5
+order: 4
 year: "2024–2025"
 github: "https://github.com/vincenzopiconee/SuperHeroFit"
 theme:

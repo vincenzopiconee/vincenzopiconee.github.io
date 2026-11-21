@@ -5,21 +5,21 @@ const links = [
   {
     name: 'GitHub',
     handle: 'github.com/vincenzopiconee',
-    description: 'Source code, Swift repositories, and ongoing experiments.',
+    description: 'Browse source code, commits, and ongoing Swift experiments.',
     href: 'https://github.com/vincenzopiconee',
     external: true,
   },
   {
     name: 'LinkedIn',
     handle: 'linkedin.com/in/vincenzo-piconee',
-    description: 'Academic journey, experience, and professional network.',
+    description: 'Follow my studies, fellowships, and professional path.',
     href: 'https://www.linkedin.com/in/vincenzo-piconee',
     external: true,
   },
   {
     name: 'Email',
     handle: 'vincenzopicone22@gmail.com',
-    description: 'Reach out directly about internships, collaborations, or iOS projects.',
+    description: 'Say hello about internships, collaborations, or new app ideas.',
     href: 'mailto:vincenzopicone22@gmail.com',
     external: false,
   },
@@ -28,7 +28,7 @@ const links = [
 
 <BaseLayout
   title="Profile | Vincenzo Picone"
-  description="Vincenzo Picone, Computer Science student and iOS developer. Connect via GitHub, LinkedIn, or Email."
+  description="About Vincenzo Picone: background, Apple Developer Academy fellowship, Human-Computer Interaction studies, and ways to connect."
   activeNav="profile"
 >
   <article class="apple-container pt-14 pb-16 sm:pt-24">
@@ -36,17 +36,8 @@ const links = [
       &lsaquo; Back to Projects
     </a>
 
-    <!-- Profile Intro: 50/50 Split (Left Half = Name, Right Half = Centered Circular Portrait) -->
+    <!-- Profile Intro: 50/50 Split (Left Half = Centered Circular Portrait, Right Half = Name) -->
     <header class="mt-10 grid grid-cols-1 items-center gap-10 md:grid-cols-2">
-      <div>
-        <h1 class="text-5xl font-semibold tracking-[-0.035em] text-[var(--ink)] sm:text-6xl">
-          Vincenzo Picone
-        </h1>
-        <p class="mt-4 max-w-lg text-xl font-medium leading-relaxed text-[var(--ink-secondary)] sm:text-2xl">
-          Computer Science student building native iOS apps with Swift and SwiftUI.
-        </p>
-      </div>
-
       <div class="flex justify-center">
         <img
           src="/media/profile.jpg"
@@ -58,6 +49,15 @@ const links = [
           class="h-56 w-56 rounded-full object-cover object-center shadow-md ring-1 ring-[var(--hairline)] sm:h-64 sm:w-64 lg:h-[300px] lg:w-[300px]"
         />
       </div>
+
+      <div>
+        <h1 class="text-5xl font-semibold tracking-[-0.035em] text-[var(--ink)] sm:text-6xl">
+          Vincenzo Picone
+        </h1>
+        <p class="mt-4 max-w-lg text-xl font-medium leading-relaxed text-[var(--ink-secondary)] sm:text-2xl">
+          Computer Science student crafting native iOS apps with Swift and SwiftUI.
+        </p>
+      </div>
     </header>
 
     <!-- About Me -->
@@ -66,15 +66,15 @@ const links = [
         About me
       </h2>
 
-      <div class="max-w-2xl space-y-5 text-base leading-relaxed text-[var(--ink-secondary)] sm:text-lg">
+      <div class="max-w-4xl space-y-5 text-base leading-relaxed text-[var(--ink-secondary)] sm:text-lg">
         <p>
-          I build native iOS apps with Swift and SwiftUI, focusing on clean architecture, fast performance, and interfaces that feel right at home on Apple platforms.
+          My path into Apple development took shape in Naples during the Apple Developer Academy at the University of Naples Federico II. Over nine months of Challenge-Based Learning, I took concepts from early prototypes in Figma all the way to full-cycle apps tested on TestFlight across iOS, iPadOS, watchOS, and visionOS.
         </p>
         <p>
-          I am currently a Computer Science student exploring how solid software design and human-computer interaction come together on mobile. From Quick Look document previews and memory-safe media rendering to local peer-to-peer networking and accessible UI, I care about getting the details right under the hood and on screen.
+          Today, I am pursuing a European double master's in Human-Computer Interaction and Design between Politecnico di Milano and Universidad Polit&eacute;cnica de Madrid. That blend of engineering and interaction design guides how I build: whether bridging UIKit for Quick Look editing, tuning ImageIO thumbnail memory, or wiring peer-to-peer sessions over local Wi-Fi, I care as much about how software feels in someone's hands as how it runs underneath.
         </p>
         <p>
-          Every project in this portfolio started with a concrete idea and grew through iteration, testing, and attention to native Apple platform conventions.
+          I enjoy working with international teams, watching real users test early builds, and diving into unfamiliar corners of Apple's SDKs whenever an idea calls for it. I deliberately choose ambitious goals to keep pushing myself forward, turning tough technical and design challenges into products I am proud to ship.
         </p>
       </div>
     </section>
@@ -86,7 +86,7 @@ const links = [
           Connections
         </h2>
         <p class="mt-2 text-sm text-[var(--ink-secondary)]">
-          Find my code, follow my work, or send a message directly.
+          Always happy to connect, talk Apple platforms, or collaborate on something new.
         </p>
       </div>
 

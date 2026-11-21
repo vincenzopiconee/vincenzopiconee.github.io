@@ -1,0 +1,239 @@
+---
+import type { MediaItem, VideoMediaItem } from '../utils/media';
+import SyncedDemoPlayer from './SyncedDemoPlayer.astro';
+
+interface Props {
+  title: string;
+  demoVideos?: VideoMediaItem[];
+  screenshots: MediaItem[];
+}
+
+const { title, demoVideos = [], screenshots } = Astro.props;
+const hasVideoSlide = demoVideos.length > 0;
+const isDualVideo = demoVideos.length > 1;
+const isVideoLandscape = demoVideos.some((video) => video.isLandscape);
+const isLandscape = screenshots.some((shot) => shot.isLandscape);
+const totalSlides = (hasVideoSlide ? 1 : 0) + screenshots.length;
+const videoSlideLabel = isDualVideo
+  ? demoVideos.map((v) => v.label).join(' & ')
+  : demoVideos[0]?.label ?? 'App Demo Walkthrough';
+---
+
+<div
+  class="shot-carousel"
+  role="region"
+  aria-roledescription="carousel"
+  aria-label={`${title} demo and screenshots`}
+  data-shot-carousel
+>
+  <!-- Previous/Next arrow buttons before track in DOM order; positioned cleanly below via flex order -->
+  <div class="shot-carousel-footer mt-4 flex items-center justify-end gap-2.5">
+    <button
+      type="button"
+      class="carousel-btn"
+      data-direction="previous"
+      aria-label="Previous slide"
+      disabled
+    >
+      <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M15 18l-6-6 6-6" />
+      </svg>
+    </button>
+    <button
+      type="button"
+      class="carousel-btn"
+      data-direction="next"
+      aria-label="Next slide"
+    >
+      <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M9 18l6-6-6-6" />
+      </svg>
+    </button>
+  </div>
+
+  <!-- Unified Horizontal Scroll-Snap Track (Video Demo + Screenshots; no tabindex on track) -->
+  <div
+    class="shot-carousel-track"
+    role="group"
+    aria-label="Media slides"
+    data-carousel-track
+  >
+    {hasVideoSlide && (
+      <div
+        class:list={[
+          'shot-carousel-slide',
+          isDualVideo && 'shot-carousel-slide-video-dual',
+          !isDualVideo && isVideoLandscape && 'shot-carousel-slide-video-landscape',
+        ]}
+        role="group"
+        aria-roledescription="slide"
+        aria-label={`1 of ${totalSlides}: ${videoSlideLabel}`}
+      >
+        <SyncedDemoPlayer title={title} videos={demoVideos} />
+      </div>
+    )}
+
+    {screenshots.map((shot, i) => (
+      <figure
+        class:list={[
+          'shot-carousel-slide',
+          isLandscape && 'shot-carousel-slide-landscape',
+        ]}
+        role="group"
+        aria-roledescription="slide"
+        aria-label={`${(hasVideoSlide ? 2 : 1) + i} of ${totalSlides}: ${shot.label}`}
+      >
+        <button
+          type="button"
+          data-lightbox-src={shot.src}
+          data-lightbox-label={`${title}: ${shot.label}`}
+          class:list={[
+            'group block w-full overflow-hidden border border-[var(--hairline)] bg-[var(--surface)] shadow-md cursor-zoom-in transition-transform duration-200 hover:-translate-y-1',
+            isLandscape ? 'rounded-[1.5rem]' : 'rounded-[2rem]',
+          ]}
+        >
+          <img
+            src={shot.src}
+            alt={`${title}: ${shot.label}`}
+            width={shot.width ?? (isLandscape ? 1400 : 900)}
+            height={shot.height ?? (isLandscape ? 644 : 1957)}
+            loading={i < 2 ? 'eager' : 'lazy'}
+            decoding="async"
+            class="block h-auto w-full object-contain"
+          />
+        </button>
+        <figcaption class="mt-3 px-1 text-center text-xs font-medium text-[var(--ink-secondary)]">
+          0{i + 1} · {shot.label}
+        </figcaption>
+      </figure>
+    ))}
+  </div>
+
+  <p class="sr-only" role="status" aria-live="polite" data-carousel-status></p>
+</div>
+
+<script type="module">
+  document.querySelectorAll('[data-shot-carousel]').forEach((carousel) => {
+    const track = carousel.querySelector('[data-carousel-track]');
+    const slides = Array.from(track?.children ?? []);
+    const prevBtn = carousel.querySelector('[data-direction="previous"]');
+    const nextBtn = carousel.querySelector('[data-direction="next"]');
+    const statusEl = carousel.querySelector('[data-carousel-status]');
+
+    if (!track || slides.length === 0) return;
+
+    let settledIndex = 0;
+    let pendingTarget = null;
+    let pendingOriginScroll = null;
+    let fallbackTimer = 0;
+
+    function getSlideOffset(slide) {
+      return slide.getBoundingClientRect().left - track.getBoundingClientRect().left;
+    }
+
+    function getNearestSlideIndex() {
+      let nearest = 0;
+      let minDist = Infinity;
+      for (let i = 0; i < slides.length; i++) {
+        const dist = Math.abs(getSlideOffset(slides[i]));
+        if (dist < minDist) {
+          minDist = dist;
+          nearest = i;
+        }
+      }
+      return nearest;
+    }
+
+    function isAtStart() {
+      return track.scrollLeft <= 4;
+    }
+
+    function isAtEnd() {
+      return track.scrollLeft + track.clientWidth >= track.scrollWidth - 4;
+    }
+
+    function syncButtons() {
+      if (prevBtn) {
+        const disablePrev = isAtStart();
+        const hadFocus = document.activeElement === prevBtn;
+        prevBtn.disabled = disablePrev;
+        if (disablePrev && hadFocus && nextBtn) nextBtn.focus();
+      }
+      if (nextBtn) {
+        const disableNext = isAtEnd();
+        const hadFocus = document.activeElement === nextBtn;
+        nextBtn.disabled = disableNext;
+        if (disableNext && hadFocus && prevBtn) prevBtn.focus();
+      }
+    }
+
+    function scrollToSlide(index) {
+      const clamped = Math.max(0, Math.min(slides.length - 1, index));
+      const delta = getSlideOffset(slides[clamped]);
+      pendingTarget = clamped;
+      pendingOriginScroll = Math.round(track.scrollLeft);
+
+      const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      track.scrollBy({
+        left: delta,
+        behavior: prefersReduced ? 'auto' : 'smooth',
+      });
+    }
+
+    function onSettle() {
+      if (pendingTarget !== null && Math.round(track.scrollLeft) === pendingOriginScroll) {
+        const nearestCheck = getNearestSlideIndex();
+        if (nearestCheck !== pendingTarget && !isAtEnd() && !isAtStart()) return;
+      }
+
+      const nearest = isAtEnd() ? slides.length - 1 : getNearestSlideIndex();
+      pendingTarget = null;
+      pendingOriginScroll = null;
+      syncButtons();
+
+      if (nearest !== settledIndex) {
+        settledIndex = nearest;
+        if (statusEl) {
+          statusEl.textContent = `Slide ${nearest + 1} of ${slides.length}`;
+        }
+      }
+    }
+
+    prevBtn?.addEventListener('click', () => {
+      const base = pendingTarget ?? getNearestSlideIndex();
+      const target = base > 0 && getSlideOffset(slides[base]) < -16 ? base : base - 1;
+      scrollToSlide(target);
+    });
+
+    nextBtn?.addEventListener('click', () => {
+      const base = pendingTarget ?? getNearestSlideIndex();
+      const target = base < slides.length - 1 && getSlideOffset(slides[base]) > 16 ? base : base + 1;
+      scrollToSlide(target);
+    });
+
+    if ('onscrollend' in window) {
+      track.addEventListener('scrollend', onSettle);
+    } else {
+      track.addEventListener(
+        'scroll',
+        () => {
+          clearTimeout(fallbackTimer);
+          fallbackTimer = window.setTimeout(onSettle, 120);
+        },
+        { passive: true }
+      );
+    }
+
+    window.addEventListener(
+      'resize',
+      () => {
+        syncButtons();
+      },
+      { passive: true }
+    );
+
+    const initial = getNearestSlideIndex();
+    settledIndex = initial;
+    syncButtons();
+  });
+</script>
